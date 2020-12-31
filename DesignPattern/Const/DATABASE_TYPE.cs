@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace DesignPattern
 {
-   class Program
+   public enum DATABASE_TYPE
    {
-      static void Main(string[] args)
-      {
-         
-      }
+      SQLSERVER,
+      MYSQL,
    }
 }

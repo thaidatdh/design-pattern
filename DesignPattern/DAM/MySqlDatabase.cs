@@ -6,10 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 
-namespace DesignPattern.DAM
+namespace DesignPattern
 {
-   public class MySqlDatabase : Database
+   public class MySqlDatabase : DatabaseAbstract
    {
+      public MySqlDatabase(string connectionString) 
+      { 
+         this.ConnectionString = connectionString; 
+      }
       public override void CloseConnection()
       {
          MySqlConnection connection = (MySqlConnection)GetConnection();
@@ -38,7 +42,7 @@ namespace DesignPattern.DAM
       public override int ExecuteInsertQuery(object command)
       {
          MySqlCommand cmd = (MySqlCommand)command;
-         int rowAffected = Convert.ToInt32(cmd.ExecuteScalar());
+         int rowAffected = cmd.ExecuteScalar().ToInt();
          cmd.Dispose();
          return rowAffected;
       }
@@ -51,7 +55,7 @@ namespace DesignPattern.DAM
          return rowAffected;
       }
 
-      public override bool Open()
+      public override bool IsOpened()
       {
          MySqlConnection connection = (MySqlConnection)GetConnection();
          if (connection != null && connection.State.Equals(ConnectionState.Open))

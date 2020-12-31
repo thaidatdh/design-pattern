@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 namespace DesignPattern.Entity
 {
    [Table("USERS")]
-   public class UserEntity : IEntity
+   public class UserEntity : IEntity<UserEntity>
    {
       public UserEntity() { }
       public UserEntity(Object data)
       {
-         
       }
       [Entity(Column = "USER_ID", DataType = DATATYPE.GENERATED_ID, isPrimaryKey = true)]
       public int UserId { get; set; }
@@ -37,29 +36,5 @@ namespace DesignPattern.Entity
       public string PhotoLink { get; set; }
       [Entity(Column = "USER_TYPE", DataType = DATATYPE.STRING, DefaultValue = "USER")]
       public string UserType { get; set; }
-
-      public static List<UserEntity> Get()
-      {
-         throw new NotImplementedException();
-      }
-      public static IEnumerable<UserEntity> Where(Expression<Func<UserEntity, bool>> predicate)
-      {
-         throw new NotImplementedException();
-      }
-
-      public bool Delete()
-      {
-         throw new NotImplementedException();
-      }
-
-      public void Insert()
-      {
-         throw new NotImplementedException();
-      }
-
-      public bool Update()
-      {
-         throw new NotImplementedException();
-      }
    }
 }
