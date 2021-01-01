@@ -13,13 +13,7 @@ namespace DesignPattern
       {
          return CustomDatabase.Database.GetAllEntityList<T>();
       }
-      public static int Insert(T dto)
-      {
-         throw new NotImplementedException();
-      }
-      public static bool Update(T dto)
-      {
-         throw new NotImplementedException();
-      }
+      public abstract int Insert();
+      public abstract bool Update();
    }
 }

@@ -13,6 +13,7 @@ namespace DesignPattern.Entity
       public UserEntity() { }
       public UserEntity(Object data)
       {
+         EntityService.PassValueByAttribute<UserEntity>(data, this);
       }
       [Entity(Column = "USER_ID", DataType = DATATYPE.GENERATED_ID, isPrimaryKey = true)]
       public int UserId { get; set; }
@@ -36,5 +37,15 @@ namespace DesignPattern.Entity
       public string PhotoLink { get; set; }
       [Entity(Column = "USER_TYPE", DataType = DATATYPE.STRING, DefaultValue = "USER")]
       public string UserType { get; set; }
+
+      public override int Insert()
+      {
+         throw new NotImplementedException();
+      }
+
+      public override bool Update()
+      {
+         throw new NotImplementedException();
+      }
    }
 }

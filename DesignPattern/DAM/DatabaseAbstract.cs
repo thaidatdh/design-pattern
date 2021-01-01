@@ -29,5 +29,25 @@ namespace DesignPattern
       public abstract int ExecuteQuery(object command);
       public abstract int ExecuteInsertQuery(object command);
       public abstract void CloseConnection();
+      private static string GenerateSelectQuery<T>(string wherePart = "", string otherPart = "")
+      {
+         string tableName = EntityService.GetTableName<T>();
+         return String.Format("SELECT * FROM {0} {1} {2}", tableName, wherePart, otherPart).Trim();
+      }
+      public List<T> GetEntityList<T>(string sql)
+      {
+         object command = CreateCommand(sql);
+         DataTable dt = ExcuteSelectQuery(command);
+         if (dt != null)
+         {
+            return dt.Rows.Cast<DataRow>().Select(n => EntityService.GetObject<T>(n)).ToList();
+         }
+         return new List<T>();
+      }
+      public List<T> GetAllEntityList<T>()
+      {
+         string query = GenerateSelectQuery<T>();
+         return GetEntityList<T>(query);
+      }
    }
 }
