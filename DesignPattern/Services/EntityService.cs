@@ -193,5 +193,12 @@ namespace DesignPattern
             str = ((TableAttribute[])typeof(T).GetCustomAttributes(typeof(TableAttribute), true))[0].Name;
          return str;
       }
+      public static string GetInheritanceColumn(Type type)
+      {
+         string str = type.Name;
+         if (type.IsDefined(typeof(TableAttribute), true))
+            str = ((TableAttribute[])type.GetCustomAttributes(typeof(TableAttribute), true))[0].InheritanceColumn;
+         return str;
+      }
    }
 }
