@@ -38,9 +38,9 @@ namespace DesignPattern.Entity
       [Entity(Column = "USER_TYPE", DataType = DATATYPE.STRING, DefaultValue = "USER")]
       public string UserType { get; set; }
 
-      public override void Insert()
+      public override int Insert()
       {
-         CustomDatabase.Database.InsertEntity<UserEntity>(this);
+         return CustomDatabase.Database.InsertEntity<UserEntity>(this);
       }
 
       public override bool Update()

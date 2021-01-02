@@ -179,11 +179,13 @@ namespace DesignPattern
          }
       }
       protected abstract string GenerateInsertQuery<T>(T entity, bool insertIncludeID = false);
-      public void InsertEntity<T>(T entity, bool insertIncludeID = false)
+      public int InsertEntity<T>(T entity, bool insertIncludeID = false)
       {
          string query = GenerateInsertQuery<T>(entity, insertIncludeID);
          object command = CreateCommand(query);
-         ExecuteInsertQuery(command);
+         int id = ExecuteInsertQuery(command);
+         EntityService.SetPrimaryKeyData<T>(entity, id);
+         return id;
       }
 
       private string HandleQueryValue(object objectValue, string methodAction = "")

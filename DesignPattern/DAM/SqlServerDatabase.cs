@@ -75,9 +75,14 @@ namespace DesignPattern
       {
          string tableName = EntityService.GetTableName<T>();
          GenerateInsertColumnValuePart<T>(entity, out string columns, out string values, insertIncludeID);
+         string primaryKeyColumn = EntityService.GetPrimaryColumn<T>();
+         if (!String.IsNullOrEmpty(primaryKeyColumn))
+         {
+            primaryKeyColumn = "OUTPUT INSERTED." + primaryKeyColumn;
+         }
          if (String.IsNullOrEmpty(columns) || String.IsNullOrEmpty(values))
             return null;
-         string result = String.Format("INSERT INTO {0} ({1}) VALUES ({2})", tableName, columns.ToString(), values.ToString());
+         string result = String.Format("INSERT INTO {0} ({1}) {2} VALUES ({3})", tableName, columns.ToString(), primaryKeyColumn, values.ToString());
          
          if (insertIncludeID)
          {
