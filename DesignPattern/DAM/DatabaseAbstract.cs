@@ -81,15 +81,122 @@ namespace DesignPattern
          string query = GenerateSelectQuery<T>();
          return GetEntityList<T>(query);
       }
+      private string ParseDataSQL(object data, DATATYPE dataType, object defaultValue = null)
+      {
+         if (data == null)
+         {
+            if (defaultValue != null)
+            {
+               data = defaultValue;
+            }
+         }
+
+         switch (dataType)
+         {
+            case DATATYPE.STRING:
+               if ((data == null || (string)data == "") && defaultValue != null)
+               {
+                  data = defaultValue;
+               }
+               return HandleQueryValue(data.ToNotNullString());
+            case DATATYPE.INTEGER:
+            case DATATYPE.BIGINT:
+               if (data == null && defaultValue != null)
+               {
+                  data = defaultValue;
+               }
+               return data == null ? "0" : data.ToNotNullString();
+            case DATATYPE.DOUBLE:
+               if (data == null && defaultValue != null)
+               {
+                  data = defaultValue;
+               }
+               return data == null ? "0.00" : data.ToNotNullString();
+            case DATATYPE.GENERATED_ID:
+               if ((data == null || Convert.ToInt32(data) == 0))
+               {
+                  if (defaultValue != null)
+                     return defaultValue.ToNotNullString();
+                  return null;
+               }
+               return data.ToNotNullString();
+            case DATATYPE.BOOLEAN:
+               return data == null ? "0" : data.ToNotNullString();
+            case DATATYPE.TIMESTAMP:
+            case DATATYPE.DATE:
+               if (data != null && !data.ToString().Equals(""))
+                  return HandleQueryValue(data);
+               return HandleQueryValue(DateTime.Now);
+            default:
+               return null;
+         }
+      }
+      protected void GenerateInsertColumnValuePart<T>(T entity, out string columnPart, out string valuePart, bool insertIncludeID = false)
+      {
+         EntityProperty entityProperty = null;
+         columnPart = "";
+         valuePart = "";
+         string tableName = EntityService.GetTableName<T>();
+         if (EntityService.EntityMap.ContainsKey(tableName))
+         {
+            entityProperty = EntityService.EntityMap.GetValue(tableName);
+         }
+         else
+         {
+            entityProperty = EntityService.GetEntityProperties<T>(tableName);
+            EntityService.EntityMap[tableName] = entityProperty;
+         }
+         if (entityProperty == null) { return; }
+         int index = 1;
+         if (entityProperty.Properties.Count > 0)
+         {
+            StringBuilder columns = new StringBuilder();
+            StringBuilder values = new StringBuilder();
+
+            foreach (PropertyInfo info in entityProperty.Properties)
+            {
+               EntityAttribute attr = entityProperty.AttributeDictionary.GetValue(info.Name);
+               if (attr == null || (attr.isPrimaryKey && !insertIncludeID))
+                  continue;
+
+               if (index > 1)
+               {
+                  columns.Append(", ");
+                  values.Append(", ");
+               }
+
+               columns.Append(attr.Column);
+
+               object value = typeof(T).GetProperty(info.Name).GetValue(entity, (object[])null);
+               EntityAttribute attribute = entityProperty.AttributeDictionary.GetValue(info.Name);
+               string dataSql = ParseDataSQL(value, attribute.DataType, attribute.DefaultValue);
+               values.Append(dataSql);
+
+               index++;
+            }
+            columnPart = columns.ToString();
+            valuePart = values.ToString();
+         }
+      }
+      protected abstract string GenerateInsertQuery<T>(T entity, bool insertIncludeID = false);
+      public void InsertEntity<T>(T entity, bool insertIncludeID = false)
+      {
+         string query = GenerateInsertQuery<T>(entity, insertIncludeID);
+         object command = CreateCommand(query);
+         ExecuteInsertQuery(command);
+      }
+
       private string HandleQueryValue(object objectValue, string methodAction = "")
       {
          if (objectValue != null)
          {
             var type = objectValue.GetType();
             if (type == typeof(string) && !methodAction.StartsWith("like"))
-               return "'" + objectValue + "'";
+               return "'" + objectValue.ToNotNullString() + "'";
             if (type == typeof(bool))
                return objectValue.ToString().ToLower().Equals("true") ? "1" : "0";
+            if (type == typeof(DateTime))
+               return "'" + objectValue.ToNotNullString() + "'";
          }
          else
          {

@@ -71,5 +71,21 @@ namespace DesignPattern
          }
          return Connection;
       }
+      protected override string GenerateInsertQuery<T>(T entity, bool insertIncludeID = false)
+      {
+         string tableName = EntityService.GetTableName<T>();
+         GenerateInsertColumnValuePart<T>(entity, out string columns, out string values, insertIncludeID);
+         if (String.IsNullOrEmpty(columns) || String.IsNullOrEmpty(values))
+            return null;
+         string result = String.Format("INSERT INTO {0} ({1}) VALUES ({2})", tableName, columns.ToString(), values.ToString());
+         
+         if (insertIncludeID)
+         {
+            string IdentityInsertOn = "SET IDENTITY_INSERT " + tableName + " ON;\n";
+            string IdentityInsertOff = "\nSET IDENTITY_INSERT " + tableName + " OFF;";
+            result = IdentityInsertOn + result + IdentityInsertOff;
+         }
+         return result;
+      }
    }
 }

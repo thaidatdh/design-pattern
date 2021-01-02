@@ -13,7 +13,7 @@ namespace DesignPattern
       {
          return CustomDatabase.Database.GetAllEntityList<T>();
       }
-      public abstract int Insert();
+      public abstract void Insert();
       public abstract bool Update();
       public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
       {

@@ -200,5 +200,33 @@ namespace DesignPattern
             str = ((TableAttribute[])type.GetCustomAttributes(typeof(TableAttribute), true))[0].InheritanceColumn;
          return str;
       }
+      public static EntityProperty GetEntityProperties<T>(string tableName)
+      {
+         EntityProperty result = new EntityProperty();
+         List<PropertyInfo> m_propertyInfos = new List<PropertyInfo>();
+         GetProperties<T>(ref m_propertyInfos);
+
+         if (tableName.Equals("") || m_propertyInfos.Count == 0) { return null; }
+
+         result.TableName = tableName;
+         result.Properties = m_propertyInfos;
+         result.AttributeDictionary = new Dictionary<string, EntityAttribute>();
+
+         if (m_propertyInfos.Count > 0)
+         {
+            foreach (PropertyInfo info in m_propertyInfos)
+            {
+               EntityAttribute attr = GetCustomAttribute<T>(info.Name);
+               if (attr == null) continue;
+               result.AttributeDictionary[info.Name] = attr;
+               if (attr.isPrimaryKey && result.PrimaryKeyAttribute == null)
+               {
+                  result.PrimaryKeyAttribute = attr;
+                  result.PrimaryKeyPropertyName = info.Name;
+               }
+            }
+         }
+         return result;
+      }
    }
 }
