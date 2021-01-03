@@ -15,5 +15,14 @@ namespace DesignPattern
       }
       public abstract int Insert();
       public abstract bool Update();
+      public abstract bool Delete();
+      public static bool DeleteAll()
+      {
+         return CustomDatabase.Database.TruncateTable<T>();
+      }
+      public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
+      {
+         return CustomDatabase.Database.GetEntityListWhere<T>(predicate);
+      }
    }
 }

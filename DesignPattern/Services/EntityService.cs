@@ -12,70 +12,75 @@ namespace DesignPattern
    {
       protected static Dictionary<Type, List<PropertyInfo>> EntityProperties;
       public static Dictionary<string, EntityProperty> EntityMap = new Dictionary<string, EntityProperty>(); // table name -> entity properties
-      public static void PassValueByAttribute<T>(Object data, object dto)
+      public static void PassValueByAttribute<T>(Object data, object entity)
       {
          string tableName = GetTableName<T>();
-         EntityProperty entity = null;
+         EntityProperty entityProperty = null;
          if (EntityMap.ContainsKey(tableName))
          {
-            entity = EntityMap.GetValue(tableName);
+            entityProperty = EntityMap.GetValue(tableName);
          }
          else
          {
-            entity = new EntityProperty();
-            entity.TableName = tableName;
+            entityProperty = new EntityProperty();
+            entityProperty.TableName = tableName;
 
             List<PropertyInfo> propertyInfos = new List<PropertyInfo>();
             GetProperties<T>(ref propertyInfos);
 
-            Type baseType = dto.GetType().BaseType;
+            Type baseType = entityProperty.GetType().BaseType;
             while (baseType != null && !(baseType is Object))
             {
                GetProperties(baseType, ref propertyInfos);
                baseType = baseType.BaseType;
             }
 
-            entity.Properties = propertyInfos;
-            entity.AttributeDictionary = new Dictionary<string, EntityAttribute>();
+            entityProperty.Properties = propertyInfos;
+            entityProperty.AttributeDictionary = new Dictionary<string, EntityAttribute>();
             foreach (PropertyInfo info in propertyInfos)
             {
-               EntityAttribute dtoAttr = GetCustomAttribute<T>(info.Name);
+               EntityAttribute entityAttr = GetCustomAttribute<T>(info.Name);
 
-               entity.AttributeDictionary[info.Name] = dtoAttr;
+               entityProperty.AttributeDictionary[info.Name] = entityAttr;
+               if (entityAttr.isPrimaryKey)
+               {
+                  entityProperty.PrimaryKeyAttribute = entityAttr;
+                  entityProperty.PrimaryKeyPropertyName = entityAttr.PropertyInfo.Name;
+               }
             }
-            EntityMap[tableName] = entity;
+            EntityMap[tableName] = entityProperty;
          }
-         foreach (PropertyInfo info in entity.Properties)
+         foreach (PropertyInfo info in entityProperty.Properties)
          {
-            EntityAttribute dtoAttr = entity.AttributeDictionary.GetValue(info.Name);
-            if (dtoAttr == null) continue;
-            object columnValue = GetValue(dtoAttr.Column, dtoAttr.DataType, data);
+            EntityAttribute entityAttr = entityProperty.AttributeDictionary.GetValue(info.Name);
+            if (entityAttr == null) continue;
+            object columnValue = GetValue(entityAttr.Column, entityAttr.DataType, data);
             if (columnValue == null) continue;
             var columnValueType = columnValue.GetType();
             if (columnValueType == typeof(DBNull)) continue;
 
-            switch (dtoAttr.DataType)
+            switch (entityAttr.DataType)
             {
                case DATATYPE.BOOLEAN:
-                  info.SetValue(dto, columnValue.ToBoolean()); break;
+                  info.SetValue(entity, columnValue.ToBoolean()); break;
                case DATATYPE.BIGINT:
-                  info.SetValue(dto, columnValue.ToLong()); break;
+                  info.SetValue(entity, columnValue.ToLong()); break;
                case DATATYPE.GENERATED_ID:
                case DATATYPE.INTEGER:
-                  info.SetValue(dto, columnValue.ToInt()); break;
+                  info.SetValue(entity, columnValue.ToInt()); break;
                case DATATYPE.DATE:
-                  info.SetValue(dto, Convert.ToString(columnValue)); break;
+                  info.SetValue(entity, Convert.ToString(columnValue)); break;
                case DATATYPE.DOUBLE:
-                  info.SetValue(dto, columnValue.ToDouble()); break;
+                  info.SetValue(entity, columnValue.ToDouble()); break;
                case DATATYPE.STRING:
-                  if (columnValue != null) info.SetValue(dto, columnValue.ToString());
-                  else info.SetValue(dto, columnValue);
+                  if (columnValue != null) info.SetValue(entity, columnValue.ToString());
+                  else info.SetValue(entity, columnValue);
                   break;
                case DATATYPE.TIMESTAMP:
-                  if (columnValue != null) info.SetValue(dto, columnValue.ToString().ToDateTime());
+                  if (columnValue != null) info.SetValue(entity, columnValue.ToString().ToDateTime());
                   break;
                default:
-                  info.SetValue(dto, columnValue); break;
+                  info.SetValue(entity, columnValue); break;
             }
          }
       }
@@ -192,6 +197,68 @@ namespace DesignPattern
          if (typeof(T).IsDefined(typeof(TableAttribute), true))
             str = ((TableAttribute[])typeof(T).GetCustomAttributes(typeof(TableAttribute), true))[0].Name;
          return str;
+      }
+      public static string GetInheritanceColumn(Type type)
+      {
+         string str = type.Name;
+         if (type.IsDefined(typeof(TableAttribute), true))
+            str = ((TableAttribute[])type.GetCustomAttributes(typeof(TableAttribute), true))[0].InheritanceColumn;
+         return str;
+      }
+      public static string GetPrimaryColumn<T>()
+      {
+         EntityProperty entityProperty = null;
+         string tableName = GetTableName<T>();
+         if (EntityMap.ContainsKey(tableName))
+         {
+            entityProperty = EntityMap.GetValue(tableName);
+         }
+         if (entityProperty == null) return null;
+         return entityProperty.PrimaryKeyAttribute.Column;
+      }
+      public static void SetPrimaryKeyData<T>(T obj, object value)
+      {
+         EntityProperty entityProperty = null;
+         string tableName = GetTableName<T>();
+         if (EntityMap.ContainsKey(tableName))
+         {
+            entityProperty = EntityMap.GetValue(tableName);
+         }
+         if (entityProperty == null) return;
+         
+         PropertyInfo primaryKeyPropertyInfo = entityProperty.Properties.Where(p => p.Name.Equals(entityProperty.PrimaryKeyPropertyName)).FirstOrDefault();
+         if (primaryKeyPropertyInfo != null)
+         {
+            primaryKeyPropertyInfo.SetValue(obj, value);
+         }
+      }
+      public static EntityProperty GetEntityProperties<T>(string tableName)
+      {
+         EntityProperty result = new EntityProperty();
+         List<PropertyInfo> m_propertyInfos = new List<PropertyInfo>();
+         GetProperties<T>(ref m_propertyInfos);
+
+         if (tableName.Equals("") || m_propertyInfos.Count == 0) { return null; }
+
+         result.TableName = tableName;
+         result.Properties = m_propertyInfos;
+         result.AttributeDictionary = new Dictionary<string, EntityAttribute>();
+
+         if (m_propertyInfos.Count > 0)
+         {
+            foreach (PropertyInfo info in m_propertyInfos)
+            {
+               EntityAttribute attr = GetCustomAttribute<T>(info.Name);
+               if (attr == null) continue;
+               result.AttributeDictionary[info.Name] = attr;
+               if (attr.isPrimaryKey && result.PrimaryKeyAttribute == null)
+               {
+                  result.PrimaryKeyAttribute = attr;
+                  result.PrimaryKeyPropertyName = info.Name;
+               }
+            }
+         }
+         return result;
       }
    }
 }

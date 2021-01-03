@@ -69,5 +69,16 @@ namespace DesignPattern
             return DateTime.Now;
          }
       }
+      public static string ToNotNullString(this object obj)
+      {
+         try
+         {
+            return obj.ToString();
+         }
+         catch
+         {
+            return "";
+         }
+      }
    }
 }

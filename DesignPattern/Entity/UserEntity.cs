@@ -38,14 +38,19 @@ namespace DesignPattern.Entity
       [Entity(Column = "USER_TYPE", DataType = DATATYPE.STRING, DefaultValue = "USER")]
       public string UserType { get; set; }
 
+      public override bool Delete()
+      {
+         return CustomDatabase.Database.DeleteEntity<UserEntity>(this.UserId);
+      }
+
       public override int Insert()
       {
-         throw new NotImplementedException();
+         return CustomDatabase.Database.InsertEntity<UserEntity>(this);
       }
 
       public override bool Update()
       {
-         throw new NotImplementedException();
+         return CustomDatabase.Database.UpdateEntity<UserEntity>(this);
       }
    }
 }

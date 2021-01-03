@@ -42,7 +42,8 @@ namespace DesignPattern
       public override int ExecuteInsertQuery(object command)
       {
          MySqlCommand cmd = (MySqlCommand)command;
-         int rowAffected = cmd.ExecuteScalar().ToInt();
+         cmd.ExecuteNonQuery();
+         int rowAffected = cmd.LastInsertedId.ToInt();
          cmd.Dispose();
          return rowAffected;
       }
@@ -61,6 +62,16 @@ namespace DesignPattern
          if (connection != null && connection.State.Equals(ConnectionState.Open))
             return true;
          return false;
+      }
+
+      protected override string GenerateInsertQuery<T>(T entity, bool insertIncludeID = false)
+      {
+         string tableName = EntityService.GetTableName<T>();
+         GenerateInsertColumnValuePart<T>(entity, out string columns, out string values, insertIncludeID);
+         if (String.IsNullOrEmpty(columns) || String.IsNullOrEmpty(values))
+            return null;
+         string result = String.Format("INSERT INTO {0} ({1}) VALUES ({2})", tableName, columns.ToString(), values.ToString());
+         return result;
       }
 
       protected override object GetConnection()
