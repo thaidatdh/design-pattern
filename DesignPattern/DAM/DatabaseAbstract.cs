@@ -179,6 +179,58 @@ namespace DesignPattern
          }
       }
       protected abstract string GenerateInsertQuery<T>(T entity, bool insertIncludeID = false);
+      private string GenerateUpdateQuery<T>(T entity)
+      {
+         Hashtable paraMap = new Hashtable();
+         string result = "";
+
+         EntityProperty entityProperty = null;
+         string tableName = EntityService.GetTableName<T>();
+         if (EntityService.EntityMap.ContainsKey(tableName))
+         {
+            entityProperty = EntityService.EntityMap.GetValue(tableName);
+         }
+         else
+         {
+            entityProperty = EntityService.GetEntityProperties<T>(tableName);
+            EntityService.EntityMap[tableName] = entityProperty;
+         }
+         if (entityProperty == null) { return null; }
+         if (entityProperty.Properties.Count > 0)
+         {
+            string columns = "";
+            string whereClause = "";
+
+            foreach (PropertyInfo info in entityProperty.Properties)
+            {
+               EntityAttribute attribute = entityProperty.AttributeDictionary.GetValue(info.Name);
+               if (attribute == null || attribute.isPrimaryKey) continue;
+               if (!String.IsNullOrEmpty(columns))
+                  columns += ", ";
+
+               columns += attribute.Column;
+
+               object value = typeof(T).GetProperty(info.Name).GetValue(entity, (object[])null);
+               string dataSql = ParseDataSQL(value, attribute.DataType, attribute.DefaultValue);
+               columns += " = " + dataSql;
+            }
+
+            EntityAttribute attributeKey = entityProperty.PrimaryKeyAttribute;
+            if (attributeKey != null)
+            {
+               object value = typeof(T).GetProperty(attributeKey.PropertyInfo.Name).GetValue(entity, (object[])null);
+               string dataSql = ParseDataSQL(value, attributeKey.DataType, attributeKey.DefaultValue);
+
+               whereClause += attributeKey.Column + " = " + dataSql;
+            }
+            if (whereClause.Equals("")) { return null; }
+            result += String.Format("UPDATE {0} SET {1} WHERE {2}", tableName, columns, whereClause);
+         }
+
+         if (result == "")
+            return null;
+         return result;
+      }
       public int InsertEntity<T>(T entity, bool insertIncludeID = false)
       {
          string query = GenerateInsertQuery<T>(entity, insertIncludeID);
@@ -187,7 +239,13 @@ namespace DesignPattern
          EntityService.SetPrimaryKeyData<T>(entity, id);
          return id;
       }
-
+      public bool UpdateEntity<T>(T entity)
+      {
+         string query = GenerateUpdateQuery<T>(entity);
+         object command = CreateCommand(query);
+         int rowEffected = ExecuteQuery(command);
+         return rowEffected > 0;
+      }
       private string HandleQueryValue(object objectValue, string methodAction = "")
       {
          if (objectValue != null)

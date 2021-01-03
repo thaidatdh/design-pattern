@@ -45,7 +45,7 @@ namespace DesignPattern.Entity
 
       public override bool Update()
       {
-         throw new NotImplementedException();
+         return CustomDatabase.Database.UpdateEntity<UserEntity>(this);
       }
    }
 }
