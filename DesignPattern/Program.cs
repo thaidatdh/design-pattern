@@ -10,6 +10,14 @@ namespace DesignPattern
    {
       static void Main(string[] args)
       {
+         DatabaseFactory dbFactory = new DatabaseFactory();
+         DatabaseAbstract myDatabase = dbFactory.CreateDatabase(DATABASE_TYPE.SQLSERVER, @"Server=.;Database=BSDB;Integrated Security = True;");
+         CustomDatabase db = new CustomDatabase();
+         db.CreateInstance(myDatabase);
+         //Entity.UserEntity t = new Entity.UserEntity();
+         //t.Email = "abc";
+         var t = Entity.UserEntity.Where(n => n.UserId == 10).FirstOrDefault();
+         t.Update();
       }
    }
 }
