@@ -92,5 +92,33 @@ namespace DesignPattern
          }
          return result;
       }
+
+      protected override string GenerateComplexSelectQuery<T, S>(Query<T, S> query)
+      {
+         string[] queryParts = GenerateComplexSelectComponent(query);
+         string selectPart = queryParts[0].Trim();
+         string fromPart = queryParts[1].Trim();
+         string wherePart = queryParts[2].Trim();
+         string orderPart = queryParts[3].Trim();
+         string limitPart = queryParts[4].Trim();
+         if (String.IsNullOrEmpty(fromPart))
+         {
+            return "";
+         }
+         if (!String.IsNullOrEmpty(wherePart))
+         {
+            wherePart = "WHERE " + wherePart;
+         }
+         if (!String.IsNullOrEmpty(orderPart))
+         {
+            orderPart = "ORDER BY " + orderPart;
+         }
+         if (!String.IsNullOrEmpty(limitPart))
+         {
+            limitPart = "TOP " + limitPart + " ";
+         }
+         string result = String.Format("SELECT {0}{1} FROM {2} {3} {4}", limitPart, selectPart, fromPart, wherePart, orderPart).Trim();
+         return result;
+      }
    }
 }

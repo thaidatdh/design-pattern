@@ -20,9 +20,17 @@ namespace DesignPattern
       {
          return CustomDatabase.Database.TruncateTable<T>();
       }
-      public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
+      public static Query<T, S> Select<S>(Expression<Func<T, S>> select)
       {
-         return CustomDatabase.Database.GetEntityListWhere<T>(predicate);
+         Query<T, S> query = new Query<T, S>();
+         query.SelectExpression = select;
+         return query;
+      }
+      public static Query<T, object> Where(Expression<Func<T, bool>> where)
+      {
+         Query<T, object> query = new Query<T, object>();
+         query.WhereExpression = where;
+         return query;
       }
    }
 }

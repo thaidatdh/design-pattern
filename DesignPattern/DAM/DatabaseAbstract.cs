@@ -37,16 +37,16 @@ namespace DesignPattern
          {  "<=", ">" },
          {  "and", "or" },
          {  "or", "and" },
-         { "like \"{0}%\"", "not like \"{0}%\""},
-         { "like \"%{0}\"", "not like \"%{0}\""},
-         { "like \"%{0}%\"", "not like \"%{0}%\""},
+         { "like \'{0}%\'", "not like \'{0}%\'"},
+         { "like \'%{0}\'", "not like \'%{0}\'"},
+         { "like \'%{0}%\'", "not like \'%{0}%\'"},
       };
       private static Dictionary<string, string> methodType = new Dictionary<string, string>()
       {
          { "Equals",  "=" },
-         { "StartsWith",  "like \"{0}%\""},
-         { "EndsWith",  "like \"%{0}\""},
-         { "Contains",  "like \"%{0}%\""},
+         { "StartsWith",  "like \'{0}%\'"},
+         { "EndsWith",  "like \'%{0}\'"},
+         { "Contains",  "like \'%{0}%\'"},
       };
       protected object Connection;
       protected string ConnectionString { get; set; }
@@ -231,7 +231,7 @@ namespace DesignPattern
             return null;
          return result;
       }
-      private static string GenerateDeleteQuery<T>(long ID = 0, bool isDeleteAll = false)
+      private string GenerateDeleteQuery<T>(long ID = 0, bool isDeleteAll = false)
       {
          
          string result = "";
@@ -274,6 +274,46 @@ namespace DesignPattern
             return null;
          return result;
       }
+      protected string[] GenerateComplexSelectComponent<T,S>(Query<T,S> query)
+      {
+         Type objectType = typeof(T);
+
+         var tableName = EntityService.GetTableName(objectType);
+         if (String.IsNullOrEmpty(tableName))
+            return null;
+         Dictionary<Type, string> alphabetExpressionMap = new Dictionary<Type, string>();
+         string fromPart = tableName;
+         string wherePart = "";
+         if (query.WhereExpression != null)
+         {
+            fromPart = CreateLinkInheritancePart<T>(objectType, query.WhereExpression.Parameters[0].Name, alphabetExpressionMap);
+            wherePart = CreateWherePart(query.WhereExpression.Body, alphabetExpressionMap);
+         }
+         string selectPart = "*";
+         if (query.SelectExpression != null)
+         {
+            selectPart = CreateSelectPart(query.SelectExpression, alphabetExpressionMap);
+         }
+         string orderPart = "";
+         if (query.OrderList.Count > 0)
+         {
+            List<string> orderList = new List<string>();
+            for (int i = 0; i < query.OrderList.Count; i++)
+            {
+               var orderExpression = query.OrderList[i];
+               ORDER orderType = query.OrderTypeList[i];
+               string orderLinkPart = CreateOrderByPart(orderExpression, orderType, alphabetExpressionMap);
+               if (!String.IsNullOrEmpty(orderLinkPart))
+               {
+                  orderList.Add(orderLinkPart);
+               }
+            }
+            orderPart = String.Join(",", orderList);
+         }
+         string limit = query.LimitValue == null ? "" : query.LimitValue.Value.ToString();
+         return new string[] { selectPart, fromPart, wherePart, orderPart, limit };
+      }
+      protected abstract string GenerateComplexSelectQuery<T, S>(Query<T, S> query);
       public int InsertEntity<T>(T entity, bool insertIncludeID = false)
       {
          string query = GenerateInsertQuery<T>(entity, insertIncludeID);
@@ -432,6 +472,162 @@ namespace DesignPattern
          }
          return result;
       }
+      private  string CreateSelectPart<T, S>(Expression<Func<T, S>> selectExpression, Dictionary<Type, string> alphabetExpressionMap)
+      {
+         List<string> selectList = new List<string>();
+
+         if (selectExpression.Body.GetType().GetProperties().Any(n => n.Name.Equals("Arguments")))
+         {
+            IEnumerable<Expression> value = ((dynamic)selectExpression.Body).Arguments;
+            foreach (MemberExpression memEx in value)
+            {
+               EntityAttribute attribute = EntityService.GetCustomAttribute(memEx.Member.DeclaringType, memEx.Member.Name);
+               if (attribute == null)
+                  continue;
+
+               if (alphabetExpressionMap.Count == 0 && memEx.Member.DeclaringType != typeof(T))
+                  throw new Exception("Column " + attribute.Column + " not exist on table " + EntityService.GetTableName(typeof(T)) + ".");
+
+               string columnName = (alphabetExpressionMap.Count != 0) ? String.Format("{0}.{1}", alphabetExpressionMap[memEx.Member.ReflectedType], attribute.Column) : attribute.Column;
+               selectList.Add(columnName);
+            }
+         }
+         else
+         {
+            MemberExpression memEx = (MemberExpression)selectExpression.Body;
+
+            EntityAttribute attribute = EntityService.GetCustomAttribute(memEx.Member.DeclaringType, memEx.Member.Name);
+            if (attribute != null)
+            {
+               if (alphabetExpressionMap.Count == 0 && memEx.Member.DeclaringType != typeof(T))
+                  throw new Exception("Column " + attribute.Column + " not exist on table " + EntityService.GetTableName(typeof(T)) + ".");
+
+               string columnName = (alphabetExpressionMap.Count != 0) ? String.Format("{0}.{1}", alphabetExpressionMap[memEx.Member.ReflectedType], attribute.Column) : attribute.Column;
+               selectList.Add(columnName);
+            }
+         }
+         return String.Join(",", selectList);
+      }
+      private string CreateOrderByPart<T, O>(Expression<Func<T, O>> orderExpression, ORDER orderType, Dictionary<Type, string> alphabetExpressionMap)
+      {
+         List<string> orderList = new List<string>();
+         string orderString = orderType == ORDER.Ascending ? "ASC" : "DESC";
+         if (orderExpression.Body.GetType().GetProperties().Any(n => n.Name.Equals("Arguments")))
+         {
+            IEnumerable<Expression> value = ((dynamic)orderExpression.Body).Arguments;
+            foreach (MemberExpression memEx in value)
+            {
+               EntityAttribute attribute = EntityService.GetCustomAttribute(memEx.Member.DeclaringType, memEx.Member.Name);
+               if (attribute == null)
+                  continue;
+
+               if (alphabetExpressionMap.Count == 0 && memEx.Member.DeclaringType != typeof(T))
+                  throw new Exception("Column " + attribute.Column + " not exist on table " + EntityService.GetTableName(typeof(T)) + ".");
+
+               string columnName = (alphabetExpressionMap.Count != 0) ? String.Format("{0}.{1}", alphabetExpressionMap[memEx.Member.ReflectedType], attribute.Column) : attribute.Column;
+               string result = String.Format("{0} {1}", columnName, orderString);
+               orderList.Add(result);
+            }
+         }
+         else
+         {
+            MemberExpression memEx = (MemberExpression)orderExpression.Body;
+
+            EntityAttribute attribute = EntityService.GetCustomAttribute(memEx.Member.DeclaringType, memEx.Member.Name);
+            if (attribute != null)
+            {
+               if (alphabetExpressionMap.Count == 0 && memEx.Member.DeclaringType != typeof(T))
+                  throw new Exception("Column " + attribute.Column + " not exist on table " + EntityService.GetTableName(typeof(T)) + ".");
+
+               string columnName = (alphabetExpressionMap.Count != 0) ? String.Format("{0}.{1}", alphabetExpressionMap[memEx.Member.ReflectedType], attribute.Column) : attribute.Column;
+               string result = String.Format("{0} {1}", columnName, orderString);
+               orderList.Add(result);
+            }
+         }
+         return String.Join(",", orderList);
+      }
+      public IEnumerable<S> GetPropertyValueList<S>(string sql)
+      {
+         List<S> result = new List<S>();
+         object command = CreateCommand(sql);
+         DataTable dt = ExcuteSelectQuery(command);
+         if (dt != null)
+         {
+            bool dynamicType = typeof(S).Name.Contains("AnonymousType");
+            foreach (DataRow dr in dt.Rows)
+            {
+               if (dynamicType)
+               {
+                  var rowValue = new List<object>();
+                  for (Int32 i = 0; i < dt.Columns.Count; i++)
+                  {
+                     var value = dr[i];
+                     if (value is DBNull)
+                        value = EntityService.GetDefaultGeneric(dt.Columns[i].DataType);
+                     rowValue.Add(value);
+                  }
+                  
+                  result.Add((S)Activator.CreateInstance(typeof(S), rowValue.ToArray()));
+               }
+               else
+               {
+                  for (Int32 i = 0; i < dt.Columns.Count; i++)
+                  {
+                     var value = dr[i];
+                     if (value is DBNull)
+                        value = EntityService.GetDefaultGeneric(dt.Columns[i].DataType);
+
+                     if (typeof(S) == typeof(int))
+                        result.Add((S)((object)value.ToInt()));
+                     else if (typeof(S) == typeof(long))
+                        result.Add((S)((object)value.ToLong()));
+                     else result.Add((S)value);
+                  }
+               }
+            }
+         }
+         return result;
+      }
+      public IEnumerable<T> GetPropertyValueEntityList<T, S>(string sql)
+      {
+         List<T> result = new List<T>();
+         object command = CreateCommand(sql);
+         DataTable dt = ExcuteSelectQuery(command);
+         if (dt != null)
+         {
+            bool dynamicType = typeof(S).Name.Contains("AnonymousType");
+            foreach (DataRow dr in dt.Rows)
+            {
+               if (dynamicType)
+               {
+                  var rowValue = new List<object>();
+                  T entity = Activator.CreateInstance<T>();
+                  for (Int32 i = 0; i < dt.Columns.Count; i++)
+                  {
+                     var value = dr[i];
+                     if (value is DBNull)
+                        value = EntityService.GetDefaultGeneric(dt.Columns[i].DataType);
+                     EntityService.SetDataByColumnName(entity, dt.Columns[i].ColumnName, value);
+                  }
+                  result.Add((T)entity);
+               }
+               else
+               {
+                  for (Int32 i = 0; i < dt.Columns.Count; i++)
+                  {
+                     var value = dr[i];
+                     if (value is DBNull)
+                        value = EntityService.GetDefaultGeneric(dt.Columns[i].DataType);
+                     T entity = Activator.CreateInstance<T>();
+                     EntityService.SetDataByColumnName(entity, dt.Columns[i].ColumnName, value);
+                     result.Add((T)entity);
+                  }
+               }
+               
+            }
+         }
+         return result;
+      }
       public IEnumerable<T> GetEntityListWhere<T>(Expression<Func<T, bool>> predicate)
       {
          if (predicate == null)
@@ -446,10 +642,22 @@ namespace DesignPattern
          Dictionary<Type, string> alphabetExpressionMap = new Dictionary<Type, string>();
          var fromLink = CreateLinkInheritancePart<T>(objectType, predicate.Parameters[0].Name, alphabetExpressionMap);
          var query = CreateWherePart(predicate.Body, alphabetExpressionMap);
-         string sql =  String.Format("SELECT * FROM {0} WHERE {1}", fromLink, query.Replace("\"", "'"));
+         string sql =  String.Format("SELECT * FROM {0} WHERE {1}", fromLink, query);
          
          return GetEntityList<T>(sql);
       }
-
+      public IEnumerable<T> GetEntityListComplexQuery<T,S>(Query<T, S> query)
+      {
+         string queryString = GenerateComplexSelectQuery(query);
+         if (query.SelectExpression == null)
+            return GetEntityList<T>(queryString);
+         else
+            return GetPropertyValueEntityList<T, S>(queryString);
+      }
+      public IEnumerable<S> GetListComplexSelectField<T, S>(Query<T, S> query)
+      {
+         string queryString = GenerateComplexSelectQuery(query);
+         return GetPropertyValueList<S>(queryString);
+      }
    }
 }

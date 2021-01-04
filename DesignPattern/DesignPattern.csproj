@@ -52,6 +52,7 @@
     <Compile Include="Attributes\TableAttribute.cs" />
     <Compile Include="Const\DATABASE_TYPE.cs" />
     <Compile Include="Const\DATATYPE.cs" />
+    <Compile Include="Const\ORDER.cs" />
     <Compile Include="DAM\CustomDatabase.cs" />
     <Compile Include="DAM\DatabaseAbstract.cs" />
     <Compile Include="DAM\DatabaseFactory.cs" />
@@ -62,6 +63,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\EntityService.cs" />
+    <Compile Include="Utils\EntityQueryExtension.cs" />
+    <Compile Include="Utils\Query.cs" />
     <Compile Include="Utils\ExtensionUtils.cs" />
   </ItemGroup>
   <ItemGroup>

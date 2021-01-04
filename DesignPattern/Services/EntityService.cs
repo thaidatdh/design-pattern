@@ -22,33 +22,7 @@ namespace DesignPattern
          }
          else
          {
-            entityProperty = new EntityProperty();
-            entityProperty.TableName = tableName;
-
-            List<PropertyInfo> propertyInfos = new List<PropertyInfo>();
-            GetProperties<T>(ref propertyInfos);
-
-            Type baseType = entityProperty.GetType().BaseType;
-            while (baseType != null && !(baseType is Object))
-            {
-               GetProperties(baseType, ref propertyInfos);
-               baseType = baseType.BaseType;
-            }
-
-            entityProperty.Properties = propertyInfos;
-            entityProperty.AttributeDictionary = new Dictionary<string, EntityAttribute>();
-            foreach (PropertyInfo info in propertyInfos)
-            {
-               EntityAttribute entityAttr = GetCustomAttribute<T>(info.Name);
-
-               entityProperty.AttributeDictionary[info.Name] = entityAttr;
-               if (entityAttr.isPrimaryKey)
-               {
-                  entityProperty.PrimaryKeyAttribute = entityAttr;
-                  entityProperty.PrimaryKeyPropertyName = entityAttr.PropertyInfo.Name;
-               }
-            }
-            EntityMap[tableName] = entityProperty;
+            entityProperty = GenerateEntityMapProperty<T>();
          }
          foreach (PropertyInfo info in entityProperty.Properties)
          {
@@ -83,6 +57,38 @@ namespace DesignPattern
                   info.SetValue(entity, columnValue); break;
             }
          }
+      }
+      private static EntityProperty GenerateEntityMapProperty<T>()
+      {
+         string tableName = GetTableName<T>();
+         EntityProperty entityProperty = new EntityProperty();
+         entityProperty.TableName = tableName;
+
+         List<PropertyInfo> propertyInfos = new List<PropertyInfo>();
+         GetProperties<T>(ref propertyInfos);
+
+         Type baseType = entityProperty.GetType().BaseType;
+         while (baseType != null && !(baseType is Object))
+         {
+            GetProperties(baseType, ref propertyInfos);
+            baseType = baseType.BaseType;
+         }
+
+         entityProperty.Properties = propertyInfos;
+         entityProperty.AttributeDictionary = new Dictionary<string, EntityAttribute>();
+         foreach (PropertyInfo info in propertyInfos)
+         {
+            EntityAttribute entityAttr = GetCustomAttribute<T>(info.Name);
+
+            entityProperty.AttributeDictionary[info.Name] = entityAttr;
+            if (entityAttr.isPrimaryKey)
+            {
+               entityProperty.PrimaryKeyAttribute = entityAttr;
+               entityProperty.PrimaryKeyPropertyName = entityAttr.PropertyInfo.Name;
+            }
+         }
+         EntityMap[tableName] = entityProperty;
+         return entityProperty;
       }
       public static object GetValue(string columnName, DATATYPE dataType, Object data)
       {
@@ -207,22 +213,34 @@ namespace DesignPattern
       }
       public static string GetPrimaryColumn<T>()
       {
+         if (EntityProperties == null || EntityProperties.Count == 0)
+            InitEntityProperty();
          EntityProperty entityProperty = null;
          string tableName = GetTableName<T>();
          if (EntityMap.ContainsKey(tableName))
          {
             entityProperty = EntityMap.GetValue(tableName);
          }
+         else
+         {
+            entityProperty = GenerateEntityMapProperty<T>();
+         }
          if (entityProperty == null) return null;
          return entityProperty.PrimaryKeyAttribute.Column;
       }
       public static void SetPrimaryKeyData<T>(T obj, object value)
       {
+         if (EntityProperties == null || EntityProperties.Count == 0)
+            InitEntityProperty();
          EntityProperty entityProperty = null;
          string tableName = GetTableName<T>();
          if (EntityMap.ContainsKey(tableName))
          {
             entityProperty = EntityMap.GetValue(tableName);
+         }
+         else
+         {
+            entityProperty = GenerateEntityMapProperty<T>();
          }
          if (entityProperty == null) return;
          
@@ -230,6 +248,50 @@ namespace DesignPattern
          if (primaryKeyPropertyInfo != null)
          {
             primaryKeyPropertyInfo.SetValue(obj, value);
+         }
+      }
+      public static void SetData<T>(T obj, string propertyName, object value)
+      {
+         if (EntityProperties == null || EntityProperties.Count == 0)
+            InitEntityProperty();
+         EntityProperty entityProperty = null;
+         string tableName = GetTableName<T>();
+         if (EntityMap.ContainsKey(tableName))
+         {
+            entityProperty = EntityMap.GetValue(tableName);
+         }
+         else
+         {
+            entityProperty = GenerateEntityMapProperty<T>();
+         }
+         if (entityProperty == null) return;
+
+         PropertyInfo propertyInfo = entityProperty.Properties.Where(p => p.Name.Equals(propertyName)).FirstOrDefault();
+         if (propertyInfo != null)
+         {
+            propertyInfo.SetValue(obj, value);
+         }
+      }
+      public static void SetDataByColumnName<T>(T obj, string columnName, object value)
+      {
+         if (EntityProperties == null || EntityProperties.Count == 0)
+            InitEntityProperty();
+         EntityProperty entityProperty = null;
+         string tableName = GetTableName<T>();
+         if (EntityMap.ContainsKey(tableName))
+         {
+            entityProperty = EntityMap.GetValue(tableName);
+         }
+         else
+         {
+            entityProperty = GenerateEntityMapProperty<T>();
+         }
+         if (entityProperty == null) return;
+
+         PropertyInfo propertyInfo = entityProperty.Properties.Where(p => p.GetCustomAttribute<EntityAttribute>().Column.Equals(columnName)).FirstOrDefault();
+         if (propertyInfo != null)
+         {
+            propertyInfo.SetValue(obj, value);
          }
       }
       public static EntityProperty GetEntityProperties<T>(string tableName)
@@ -260,5 +322,6 @@ namespace DesignPattern
          }
          return result;
       }
+      public static T GetDefaultGeneric<T>(T input) => default(T);
    }
 }
