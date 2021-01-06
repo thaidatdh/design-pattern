@@ -32,5 +32,11 @@ namespace DesignPattern
          query.WhereExpression = where;
          return query;
       }
+      public static UpdateQuery<T> Update(Expression<Func<T, bool>> update)
+      {
+         UpdateQuery<T> query = new UpdateQuery<T>();
+         query.UpdateExpression = update;
+         return query;
+      }
    }
 }

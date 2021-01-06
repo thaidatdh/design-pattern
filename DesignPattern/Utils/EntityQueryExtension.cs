@@ -41,5 +41,18 @@ namespace DesignPattern
       {
          return CustomDatabase.Database.GetListComplexSelectField(query);
       }
+      public static UpdateQuery<T> Where<T>(this UpdateQuery<T> query, Expression<Func<T, bool>> where)
+      {
+         if (query == null)
+         {
+            query = new UpdateQuery<T>();
+         }
+         query.WhereExpression = where;
+         return query;
+      }
+      public static int QueryUpdate<T>(this UpdateQuery<T> query)
+      {
+         return CustomDatabase.Database.UpdateComplexQuery(query);
+      }
    }
 }
