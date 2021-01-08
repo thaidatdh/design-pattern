@@ -38,5 +38,9 @@ namespace DesignPattern
          query.UpdateExpression = update;
          return query;
       }
+      public static int DeleteWhere(Expression<Func<T, bool>> where)
+      {
+         return CustomDatabase.Database.DeleteWhereQuery<T>(where);
+      }
    }
 }
