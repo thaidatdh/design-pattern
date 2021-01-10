@@ -43,9 +43,9 @@ namespace DesignPattern.Entity
          return CustomDatabase.Database.DeleteEntity<UserEntity>(this.UserId);
       }
 
-      public override int Insert()
+      public override int Insert(bool insertIncludeID = false)
       {
-         return CustomDatabase.Database.InsertEntity<UserEntity>(this);
+         return CustomDatabase.Database.InsertEntity<UserEntity>(this, insertIncludeID);
       }
 
       public override bool Update()

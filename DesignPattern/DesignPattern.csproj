@@ -58,6 +58,9 @@
     <Compile Include="DAM\DatabaseFactory.cs" />
     <Compile Include="DAM\MySqlDatabase.cs" />
     <Compile Include="DAM\SqlServerDatabase.cs" />
+    <Compile Include="Entity\AuthorEntity.cs" />
+    <Compile Include="Entity\BookEntity.cs" />
+    <Compile Include="Entity\StaffEntity.cs" />
     <Compile Include="Entity\UserEntity.cs" />
     <Compile Include="Interfaces\IEntity.cs" />
     <Compile Include="Program.cs" />

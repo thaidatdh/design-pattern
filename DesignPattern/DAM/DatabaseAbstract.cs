@@ -350,7 +350,7 @@ namespace DesignPattern
          {
             var type = objectValue.GetType();
             if (type == typeof(string) && !methodAction.StartsWith("like"))
-               return "'" + objectValue.ToNotNullString() + "'";
+               return "'" + objectValue.ToNotNullString().Replace("\'","\'\'") + "'";
             if (type == typeof(bool))
                return objectValue.ToString().ToLower().Equals("true") ? "1" : "0";
             if (type == typeof(DateTime))
@@ -370,7 +370,7 @@ namespace DesignPattern
 
          alphabetExpressionMap[type] = alphabet;
 
-         if (type.BaseType != null && type.BaseType != typeof(Object) && type.BaseType != typeof(IEntity<T>))
+         if (type.BaseType != null && type.BaseType != typeof(Object) && !type.BaseType.ToString().Contains("IEntity"))
          {
             string nextAlphabet = alphabet.Remove(alphabet.Length - 1, 1) + Convert.ToChar(Convert.ToUInt16(alphabet[alphabet.Length - 1]) + 1);
 
