@@ -58,10 +58,16 @@
     <Compile Include="DAM\DatabaseFactory.cs" />
     <Compile Include="DAM\MySqlDatabase.cs" />
     <Compile Include="DAM\SqlServerDatabase.cs" />
+    <Compile Include="Entity\AuthorEntity.cs" />
+    <Compile Include="Entity\BookEntity.cs" />
+    <Compile Include="Entity\StaffEntity.cs" />
     <Compile Include="Entity\UserEntity.cs" />
     <Compile Include="Interfaces\IEntity.cs" />
+    <Compile Include="Interfaces\ListInterface.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Proxy\ListBookEntity.cs" />
+    <Compile Include="Proxy\ListBookProxy.cs" />
     <Compile Include="Services\EntityService.cs" />
     <Compile Include="Utils\EntityQueryExtension.cs" />
     <Compile Include="Utils\UpdateQuery.cs" />

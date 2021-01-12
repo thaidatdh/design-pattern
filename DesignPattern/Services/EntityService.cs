@@ -123,7 +123,7 @@ namespace DesignPattern
       }
       public static void InitEntityProperty()
       {
-         EntityProperties = Assembly.GetExecutingAssembly().GetTypes().Where(n => n.IsClass && n.Namespace == "DesignPattern.Entity").ToDictionary(k => k, v => v.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
+         EntityProperties = Assembly.GetExecutingAssembly().GetTypes().Where(n => n.IsClass && n.Namespace == "DesignPattern.Entity").ToDictionary(k => k, v => v.GetProperties(System.Reflection.BindingFlags.Public
              | System.Reflection.BindingFlags.Instance
              | System.Reflection.BindingFlags.DeclaredOnly).ToList());
       }

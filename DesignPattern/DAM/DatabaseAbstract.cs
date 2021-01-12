@@ -350,7 +350,7 @@ namespace DesignPattern
          {
             var type = objectValue.GetType();
             if (type == typeof(string) && !methodAction.StartsWith("like"))
-               return "'" + objectValue.ToNotNullString() + "'";
+               return "'" + objectValue.ToNotNullString().Replace("\'","\'\'") + "'";
             if (type == typeof(bool))
                return objectValue.ToString().ToLower().Equals("true") ? "1" : "0";
             if (type == typeof(DateTime))
@@ -370,7 +370,7 @@ namespace DesignPattern
 
          alphabetExpressionMap[type] = alphabet;
 
-         if (type.BaseType != null && type.BaseType != typeof(Object) && type.BaseType != typeof(IEntity<T>))
+         if (type.BaseType != null && type.BaseType != typeof(Object) && !type.BaseType.ToString().Contains("IEntity"))
          {
             string nextAlphabet = alphabet.Remove(alphabet.Length - 1, 1) + Convert.ToChar(Convert.ToUInt16(alphabet[alphabet.Length - 1]) + 1);
 
@@ -758,6 +758,27 @@ namespace DesignPattern
             return 0;
          string queryString = GenerateComplexUpdateQuery(query);
          object command = CreateCommand(queryString);
+         return ExecuteQuery(command);
+      }
+      private string GenerateDeleteWhereQuery<T>(Expression<Func<T, bool>> whereExpression)
+      {
+         Type objectType = typeof(T);
+
+         var tableName = EntityService.GetTableName(objectType);
+         if (String.IsNullOrEmpty(tableName))
+            return "";
+         Dictionary<Type, string> alphabetExpressionMap = new Dictionary<Type, string>();
+         var wherePart = CreateWherePart(whereExpression.Body, alphabetExpressionMap);
+         if (String.IsNullOrEmpty(tableName) || String.IsNullOrEmpty(wherePart))
+            return "";
+
+         string result = String.Format("DELETE FROM {0} WHERE {1}", tableName, wherePart);
+         return result;
+      }
+      public int DeleteWhereQuery<T>(Expression<Func<T, bool>> whereExpression)
+      {
+         string sql = GenerateDeleteWhereQuery(whereExpression);
+         object command = CreateCommand(sql);
          return ExecuteQuery(command);
       }
    }

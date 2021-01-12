@@ -13,7 +13,7 @@ namespace DesignPattern
       {
          return CustomDatabase.Database.GetAllEntityList<T>();
       }
-      public abstract int Insert();
+      public abstract int Insert(bool insertIncludeID = false);
       public abstract bool Update();
       public abstract bool Delete();
       public static bool DeleteAll()
@@ -37,6 +37,10 @@ namespace DesignPattern
          UpdateQuery<T> query = new UpdateQuery<T>();
          query.UpdateExpression = update;
          return query;
+      }
+      public static int DeleteWhere(Expression<Func<T, bool>> where)
+      {
+         return CustomDatabase.Database.DeleteWhereQuery<T>(where);
       }
    }
 }
