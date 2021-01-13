@@ -12,12 +12,12 @@ using System.Linq.Expressions;
 
 namespace DesignPattern
 {
-   public class CustomDatabase
+   public class DatabaseContext
    {
       public static DatabaseAbstract Database;
       public void CreateInstance(DatabaseAbstract database)
       {
-         CustomDatabase.Database = database;
+         DatabaseContext.Database = database;
       }
    }
 }

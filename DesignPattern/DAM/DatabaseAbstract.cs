@@ -15,7 +15,6 @@ namespace DesignPattern
 {
    public abstract class DatabaseAbstract
    {
-      protected Dictionary<string, EntityProperty> EntityMap = new Dictionary<string, EntityProperty>(); // table name -> entity properties
       private static Dictionary<ExpressionType, string> actionType = new Dictionary<ExpressionType, string>()
       {
          { ExpressionType.Equal, "=" },
@@ -61,6 +60,9 @@ namespace DesignPattern
       public abstract DataTable ExcuteSelectQuery(object command, string TableName = "TABLE");
       public abstract int ExecuteQuery(object command);
       public abstract int ExecuteInsertQuery(object command);
+      public abstract int ExecuteSqlQuery(string sql);
+      public abstract object ExecuteScalar(object command);
+      public abstract object ExecuteSqlScalar(string sql);
       public abstract void CloseConnection();
       private static string GenerateSelectQuery<T>(string wherePart = "", string otherPart = "")
       {

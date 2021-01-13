@@ -40,17 +40,17 @@ namespace DesignPattern.Entity
 
       public override bool Delete()
       {
-         return CustomDatabase.Database.DeleteEntity<UserEntity>(this.UserId);
+         return DatabaseContext.Database.DeleteEntity<UserEntity>(this.UserId);
       }
 
       public override int Insert(bool insertIncludeID = false)
       {
-         return CustomDatabase.Database.InsertEntity<UserEntity>(this, insertIncludeID);
+         return DatabaseContext.Database.InsertEntity<UserEntity>(this, insertIncludeID);
       }
 
       public override bool Update()
       {
-         return CustomDatabase.Database.UpdateEntity<UserEntity>(this);
+         return DatabaseContext.Database.UpdateEntity<UserEntity>(this);
       }
    }
 }

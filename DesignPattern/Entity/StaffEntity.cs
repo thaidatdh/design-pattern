@@ -33,27 +33,27 @@ namespace DesignPattern.Entity
       public bool Active { get; set; }
       public override bool Delete()
       {
-         return CustomDatabase.Database.DeleteEntity<StaffEntity>(this.StaffId);
+         return DatabaseContext.Database.DeleteEntity<StaffEntity>(this.StaffId);
       }
 
       public override int Insert(bool insertIncludeID = false)
       {
-         int userId = CustomDatabase.Database.InsertEntity<UserEntity>(this, insertIncludeID);
+         int userId = DatabaseContext.Database.InsertEntity<UserEntity>(this, insertIncludeID);
          this.UserId = userId;
-         return CustomDatabase.Database.InsertEntity<StaffEntity>(this, insertIncludeID);
+         return DatabaseContext.Database.InsertEntity<StaffEntity>(this, insertIncludeID);
       }
 
       public override bool Update()
       {
-         return CustomDatabase.Database.UpdateEntity<StaffEntity>(this);
+         return DatabaseContext.Database.UpdateEntity<StaffEntity>(this);
       }
       public static List<StaffEntity> GetAll()
       {
-         return CustomDatabase.Database.GetEntityList<StaffEntity>("SELECT S.*, U.* from STAFF S, USERS U WHERE S.USER_ID = U.USER_ID");
+         return DatabaseContext.Database.GetEntityList<StaffEntity>("SELECT S.*, U.* from STAFF S, USERS U WHERE S.USER_ID = U.USER_ID");
       }
       public static bool DeleteAll()
       {
-         return CustomDatabase.Database.TruncateTable<StaffEntity>();
+         return DatabaseContext.Database.TruncateTable<StaffEntity>();
       }
       public static Query<StaffEntity, S> Select<S>(Expression<Func<StaffEntity, S>> select)
       {
@@ -75,7 +75,7 @@ namespace DesignPattern.Entity
       }
       public static int DeleteWhere(Expression<Func<StaffEntity, bool>> where)
       {
-         return CustomDatabase.Database.DeleteWhereQuery<StaffEntity>(where);
+         return DatabaseContext.Database.DeleteWhereQuery<StaffEntity>(where);
       }
    }
 }

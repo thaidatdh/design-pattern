@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 ﻿using DesignPattern.Proxy;
 using System;
-=======
-﻿using System;
->>>>>>> 1de346092720296bb5fd56cbc329806533956d8e
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,19 +26,18 @@ namespace DesignPattern.Entity
 
       public override bool Delete()
       {
-         return CustomDatabase.Database.DeleteEntity<AuthorEntity>(this.AuthorId);
+         return DatabaseContext.Database.DeleteEntity<AuthorEntity>(this.AuthorId);
       }
 
       public override int Insert(bool insertIncludeID = false)
       {
-         return CustomDatabase.Database.InsertEntity<AuthorEntity>(this, insertIncludeID);
+         return DatabaseContext.Database.InsertEntity<AuthorEntity>(this, insertIncludeID);
       }
 
       public override bool Update()
       {
-         return CustomDatabase.Database.UpdateEntity<AuthorEntity>(this);
+         return DatabaseContext.Database.UpdateEntity<AuthorEntity>(this);
       }
-<<<<<<< HEAD
       ListBookProxy _books;
       public List<BookEntity> GetBooks(bool isReload = false)
       {
@@ -52,8 +47,6 @@ namespace DesignPattern.Entity
          }
          return _books.Gets();
       }
-=======
->>>>>>> 1de346092720296bb5fd56cbc329806533956d8e
    }
 }
 

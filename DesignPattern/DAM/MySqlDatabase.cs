@@ -110,5 +110,25 @@ namespace DesignPattern
          string result = String.Format("SELECT {0} FROM {1} {2} {3} {4}", selectPart, fromPart, wherePart, orderPart, limitPart).Trim();
          return result;
       }
+
+      public override int ExecuteSqlQuery(string sql)
+      {
+         object command = CreateCommand(sql);
+         return ExecuteQuery(command);
+      }
+
+      public override object ExecuteSqlScalar(string sql)
+      {
+         object command = CreateCommand(sql);
+         return ExecuteScalar(command);
+      }
+
+      public override object ExecuteScalar(object command)
+      {
+         MySqlCommand cmd = (MySqlCommand)command;
+         object result = cmd.ExecuteScalar();
+         cmd.Dispose();
+         return result;
+      }
    }
 }

@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\EntityAttribute.cs" />
-    <Compile Include="Attributes\EntityProperty.cs" />
+    <Compile Include="Services\EntityProperty.cs" />
     <Compile Include="Attributes\TableAttribute.cs" />
     <Compile Include="Const\DATABASE_TYPE.cs" />
     <Compile Include="Const\DATATYPE.cs" />
@@ -69,10 +69,10 @@
     <Compile Include="Proxy\ListBookEntity.cs" />
     <Compile Include="Proxy\ListBookProxy.cs" />
     <Compile Include="Services\EntityService.cs" />
-    <Compile Include="Utils\EntityQueryExtension.cs" />
-    <Compile Include="Utils\UpdateQuery.cs" />
-    <Compile Include="Utils\Query.cs" />
-    <Compile Include="Utils\ExtensionUtils.cs" />
+    <Compile Include="Extension\EntityQueryExtension.cs" />
+    <Compile Include="Query\UpdateQuery.cs" />
+    <Compile Include="Query\Query.cs" />
+    <Compile Include="Extension\ExtensionUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

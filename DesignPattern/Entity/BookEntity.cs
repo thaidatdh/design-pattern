@@ -38,17 +38,17 @@ namespace DesignPattern.Entity
 
       public override bool Delete()
       {
-         return CustomDatabase.Database.DeleteEntity<BookEntity>(this.BookId);
+         return DatabaseContext.Database.DeleteEntity<BookEntity>(this.BookId);
       }
 
       public override int Insert(bool insertIncludeID = false)
       {
-         return CustomDatabase.Database.InsertEntity<BookEntity>(this, insertIncludeID);
+         return DatabaseContext.Database.InsertEntity<BookEntity>(this, insertIncludeID);
       }
 
       public override bool Update()
       {
-         return CustomDatabase.Database.UpdateEntity<BookEntity>(this);
+         return DatabaseContext.Database.UpdateEntity<BookEntity>(this);
       }
    }
 }

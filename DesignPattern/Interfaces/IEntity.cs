@@ -11,14 +11,14 @@ namespace DesignPattern
    {
       public static List<T> GetAll()
       {
-         return CustomDatabase.Database.GetAllEntityList<T>();
+         return DatabaseContext.Database.GetAllEntityList<T>();
       }
       public abstract int Insert(bool insertIncludeID = false);
       public abstract bool Update();
       public abstract bool Delete();
       public static bool DeleteAll()
       {
-         return CustomDatabase.Database.TruncateTable<T>();
+         return DatabaseContext.Database.TruncateTable<T>();
       }
       public static Query<T, S> Select<S>(Expression<Func<T, S>> select)
       {
@@ -40,7 +40,7 @@ namespace DesignPattern
       }
       public static int DeleteWhere(Expression<Func<T, bool>> where)
       {
-         return CustomDatabase.Database.DeleteWhereQuery<T>(where);
+         return DatabaseContext.Database.DeleteWhereQuery<T>(where);
       }
    }
 }
