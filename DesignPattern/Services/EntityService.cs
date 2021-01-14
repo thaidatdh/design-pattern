@@ -228,6 +228,23 @@ namespace DesignPattern
          if (entityProperty == null) return null;
          return entityProperty.PrimaryKeyAttribute.Column;
       }
+      public static object GetPrimaryKeyValue<T>(T entity)
+      {
+         if (EntityProperties == null || EntityProperties.Count == 0)
+            InitEntityProperty();
+         EntityProperty entityProperty = null;
+         string tableName = GetTableName<T>();
+         if (EntityMap.ContainsKey(tableName))
+         {
+            entityProperty = EntityMap.GetValue(tableName);
+         }
+         else
+         {
+            entityProperty = GenerateEntityMapProperty<T>();
+         }
+         if (entityProperty == null) return null;
+         return entityProperty.PrimaryKeyAttribute.PropertyInfo.GetValue(entity);
+      }
       public static void SetPrimaryKeyData<T>(T obj, object value)
       {
          if (EntityProperties == null || EntityProperties.Count == 0)

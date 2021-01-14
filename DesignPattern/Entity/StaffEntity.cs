@@ -49,7 +49,7 @@ namespace DesignPattern.Entity
       }
       public static List<StaffEntity> GetAll()
       {
-         return DatabaseContext.Database.GetEntityList<StaffEntity>("SELECT S.*, U.* from STAFF S, USERS U WHERE S.USER_ID = U.USER_ID");
+         return DatabaseContext.Database.GetAllEntityList<StaffEntity>();
       }
       public static bool DeleteAll()
       {

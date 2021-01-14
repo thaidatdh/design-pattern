@@ -53,7 +53,7 @@
     <Compile Include="Const\DATABASE_TYPE.cs" />
     <Compile Include="Const\DATATYPE.cs" />
     <Compile Include="Const\ORDER.cs" />
-    <Compile Include="DAM\CustomDatabase.cs" />
+    <Compile Include="DAM\DatabaseContext.cs" />
     <Compile Include="DAM\DatabaseAbstract.cs" />
     <Compile Include="DAM\DatabaseFactory.cs" />
     <Compile Include="DAM\MySqlDatabase.cs" />

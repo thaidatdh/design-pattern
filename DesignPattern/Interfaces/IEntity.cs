@@ -42,5 +42,13 @@ namespace DesignPattern
       {
          return DatabaseContext.Database.DeleteWhereQuery<T>(where);
       }
+      public static void BulkDelete(List<T> listEntity)
+      {
+         DatabaseContext.Database.BulkDelete(listEntity);
+      }
+      public static void BulkUpdate(List<T> listEntity)
+      {
+         DatabaseContext.Database.BulkUpdate(listEntity);
+      }
    }
 }

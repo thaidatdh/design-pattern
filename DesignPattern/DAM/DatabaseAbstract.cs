@@ -64,9 +64,11 @@ namespace DesignPattern
       public abstract object ExecuteScalar(object command);
       public abstract object ExecuteSqlScalar(string sql);
       public abstract void CloseConnection();
-      private static string GenerateSelectQuery<T>(string wherePart = "", string otherPart = "")
+      private static string GenerateSelectQuery<T>(string tableName = "", string wherePart = "", string otherPart = "")
       {
-         string tableName = EntityService.GetTableName<T>();
+         if (String.IsNullOrEmpty(tableName))
+            tableName = EntityService.GetTableName<T>();
+
          return String.Format("SELECT * FROM {0} {1} {2}", tableName, wherePart, otherPart).Trim();
       }
       public List<T> GetEntityList<T>(string sql)
@@ -81,7 +83,8 @@ namespace DesignPattern
       }
       public List<T> GetAllEntityList<T>()
       {
-         string query = GenerateSelectQuery<T>();
+         string table = CreateLinkInheritancePart<T>(typeof(T));
+         string query = GenerateSelectQuery<T>(table);
          return GetEntityList<T>(query);
       }
       private string ParseDataSQL(object data, DATATYPE dataType, object defaultValue = null)
@@ -124,7 +127,7 @@ namespace DesignPattern
                }
                return data.ToNotNullString();
             case DATATYPE.BOOLEAN:
-               return data == null ? "0" : data.ToNotNullString();
+               return data == null ? "0" : (data.ToBoolean() == true ? "1" : "0");
             case DATATYPE.TIMESTAMP:
             case DATATYPE.DATE:
                if (data != null && !data.ToString().Equals(""))
@@ -367,6 +370,9 @@ namespace DesignPattern
       }
       private string CreateLinkInheritancePart<T>(Type type, string alphabet = "n", Dictionary<Type, string> alphabetExpressionMap = null)
       {
+         if (alphabetExpressionMap == null)
+            alphabetExpressionMap = new Dictionary<Type, string>();
+
          var tableName = EntityService.GetTableName(type);
          var inheritanceColumn = EntityService.GetInheritanceColumn(type);
 
@@ -782,6 +788,23 @@ namespace DesignPattern
          string sql = GenerateDeleteWhereQuery(whereExpression);
          object command = CreateCommand(sql);
          return ExecuteQuery(command);
+      }
+
+      public void BulkUpdate<T>(List<T> listEntity)
+      {
+         List<string> listQuery = listEntity.Select(n => GenerateUpdateQuery(n)).ToList();
+         string query = String.Join(";", listQuery);
+         object command = CreateCommand(query);
+         ExecuteScalar(command);
+      }
+      public void BulkDelete<T>(List<T> listEntity)
+      {
+         string TableName = EntityService.GetTableName<T>();
+         List<int> listPrimaryId = listEntity.Select(n => EntityService.GetPrimaryKeyValue(n).ToInt()).ToList();
+         List<string> listQuery = listPrimaryId.Select(id => GenerateDeleteQuery<T>(id)).ToList();
+         string query = String.Join(";", listQuery);
+         object command = CreateCommand(query);
+         ExecuteScalar(command);
       }
    }
 }

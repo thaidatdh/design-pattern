@@ -16,7 +16,9 @@ namespace DesignPattern
          DatabaseContext db = new DatabaseContext();
          db.CreateInstance(myDatabase);
          //List<StaffEntity> list = StaffEntity.Where(n => n.UserType.Equals("STAFF")).OrderBy(n => n.FirstName, ORDER.Descending).Limit(2).QueryEntity().ToList();
-         var t = StaffEntity.Select(n => n.UserId).Where(n => n.UserType.Equals("STAFF")).OrderBy(n => n.FirstName, ORDER.Descending).Limit(2).QuerySelect().ToList();
+         //var t = StaffEntity.Select(n => n.UserId).Where(n => n.UserType.Equals("STAFF")).OrderBy(n => n.FirstName, ORDER.Descending).Limit(2).QuerySelect().ToList();
+         var bulkDelete = BookEntity.GetAll();
+         var bulkStaff = StaffEntity.GetAll();
       }
       private static void MoveDataFromMSSqltoMySql()
       {
