@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace DesignPattern.Entity
 {
    [Table("AUTHOR")]
-   public class AuthorEntity : IEntity<AuthorEntity>
+   public class AuthorEntity : IEntity<AuthorEntity>, EntityInterface
    {
       public AuthorEntity() { }
       public AuthorEntity(Object data)
@@ -24,19 +24,19 @@ namespace DesignPattern.Entity
       [Entity(Column = "IS_DELETED", DataType = DATATYPE.BOOLEAN)]
       public bool IsDeleted { get; set; }
 
-      public override bool Delete()
+      public bool Delete()
       {
-         return DatabaseContext.Database.DeleteEntity<AuthorEntity>(this.AuthorId);
+         return DatabaseContext.GetInstance().DeleteEntity<AuthorEntity>(this.AuthorId);
       }
 
-      public override int Insert(bool insertIncludeID = false)
+      public int Insert(bool insertIncludeID = false)
       {
-         return DatabaseContext.Database.InsertEntity<AuthorEntity>(this, insertIncludeID);
+         return DatabaseContext.GetInstance().InsertEntity<AuthorEntity>(this, insertIncludeID);
       }
 
-      public override bool Update()
+      public bool Update()
       {
-         return DatabaseContext.Database.UpdateEntity<AuthorEntity>(this);
+         return DatabaseContext.GetInstance().UpdateEntity<AuthorEntity>(this);
       }
       ListBookProxy _books;
       public List<BookEntity> GetBooks(bool isReload = false)

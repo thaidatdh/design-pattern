@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\EntityAttribute.cs" />
+    <Compile Include="Interfaces\EntityInterface.cs" />
     <Compile Include="Services\EntityProperty.cs" />
     <Compile Include="Attributes\TableAttribute.cs" />
     <Compile Include="Const\DATABASE_TYPE.cs" />

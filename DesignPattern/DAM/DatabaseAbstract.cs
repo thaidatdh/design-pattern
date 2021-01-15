@@ -58,6 +58,11 @@ namespace DesignPattern
       public abstract bool IsOpened();
       public abstract object CreateCommand(string sql);
       public abstract DataTable ExcuteSelectQuery(object command, string TableName = "TABLE");
+      public DataTable ExcuteSelectSqlQuery(string sql, string TableName = "TABLE")
+      {
+         object command = CreateCommand(sql);
+         return ExcuteSelectQuery(command, TableName);
+      }
       public abstract int ExecuteQuery(object command);
       public abstract int ExecuteInsertQuery(object command);
       public abstract int ExecuteSqlQuery(string sql);
@@ -272,7 +277,7 @@ namespace DesignPattern
             }
             else
             {
-               result += String.Format("DELETE FROM {0}", tableName);
+               result += String.Format("TRUNCATE TABLE {0}", tableName);
             }
          }
 

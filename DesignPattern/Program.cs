@@ -10,52 +10,100 @@ namespace DesignPattern
    {
       static void Main(string[] args)
       {
-         //MoveDataFromMSSqltoMySql();
-         DatabaseFactory dbFactory = new DatabaseFactory();
-         DatabaseAbstract myDatabase = dbFactory.CreateDatabase(DATABASE_TYPE.SQLSERVER, @"Server=.;Database=DP;Integrated Security = True;");
-         DatabaseContext db = new DatabaseContext();
-         db.CreateInstance(myDatabase);
-         //List<StaffEntity> list = StaffEntity.Where(n => n.UserType.Equals("STAFF")).OrderBy(n => n.FirstName, ORDER.Descending).Limit(2).QueryEntity().ToList();
-         //var t = StaffEntity.Select(n => n.UserId).Where(n => n.UserType.Equals("STAFF")).OrderBy(n => n.FirstName, ORDER.Descending).Limit(2).QuerySelect().ToList();
-         var bulkDelete = BookEntity.GetAll();
-         var bulkStaff = StaffEntity.GetAll();
-      }
-      private static void MoveDataFromMSSqltoMySql()
-      {
-         DatabaseFactory dbFactory = new DatabaseFactory();
-         DatabaseAbstract myDatabase = dbFactory.CreateDatabase(DATABASE_TYPE.SQLSERVER, @"Server=.;Database=DP;Integrated Security = True;");
-         DatabaseContext db = new DatabaseContext();
-         db.CreateInstance(myDatabase);
-         UserEntity user = new UserEntity();
-         user.Insert();
-         /*var users = Entity.UserEntity.GetAll();
-         var staffs = Entity.StaffEntity.GetAll();
-         var auth = Entity.AuthorEntity.GetAll();
-         var books = Entity.BookEntity.GetAll();*/
-         
          EntityService.InitEntityProperty();
-         Entity.AuthorEntity.DeleteWhere(n => n.AuthorId == 1);
+         //Khởi tạo
+         DatabaseFactory dbFactory = new DatabaseFactory();
+         DatabaseAbstract myDatabase = dbFactory.CreateDatabase(DATABASE_TYPE.SQLSERVER, @"Server=.;Database=DP;Integrated Security = True;");
+         DatabaseContext db = new DatabaseContext();
+         db.CreateInstance(myDatabase);
+         //Insert 1 entity
+         AuthorEntity author = new AuthorEntity();
+         author.Name = "Test";
+         author.Insert();
+
+         //Uodate 1 entity
+         author.Name = "Update Test";
+         author.Update();
+
+         //Delete 1 entity
+         author.Delete();
+
+         //Select tất cả entity của 1 đối tượng
+         //SQL: SELECT * FROM BOOK
+         List<BookEntity> listBooks = BookEntity.GetAll();
+
+         //Select danh sách các entity thỏa mãn yêu cầu 
+         //Ví dụ: lấy tối đa 5 kết quả, bao gồm các book có author_id = 20, sắp xếp giảm dần theo tên sau đó tăng dần theo số trang
+         //MYSQL: SELECT * FROM BOOK WHERE AUTHOR_ID = 20 ORDER BY NAME DESC THEN BY PAGE ASC LIMIT 5 
+         //SQL SERVER: SELECT TOP 5 * FROM BOOK WHERE AUTHOR_ID = 20 ORDER BY NAME DESC THEN BY PAGE ASC
+         listBooks = BookEntity.Where(n => n.AuthorId >= 20)
+            .OrderBy(n => n.Name, ORDER.Descending).OrderBy(n => n.Page, ORDER.Ascending)
+            .Limit(5).QueryEntity().ToList();
+
+         //Select Entity có 1-1 foreign key (Staff - User)
+         //SQL: SELECT * FROM USERS AS u JOIN STAFF AS s ON u.USER_ID = s.USER_ID WHERE u.LAST_NAME LIKE '%Admin%'
+         List<StaffEntity> listStaff = StaffEntity.Where(n => n.LastName.Contains("Admin")).QueryEntity().ToList();
+
+         //Select 1 cột của entity (Ví dụ: lấy cột Name của book có author_id = 20)
+         //SQL: SELECT NAME FROM BOOK WHERE AUTHOR_ID = 20
+         List<string> listBookName = BookEntity.Select(n => n.Name).Where(n => n.AuthorId == 20).QuerySelect().ToList();
+
+
+         //Select nhiều cột của entity (Ví dụ: lấy cột Name và BookId của book có author_id = 20)
+         //SQL: SELECT BOOK_ID, NAME FROM BOOK WHERE AUTHOR_ID = 20
+         var listBookCustomType = BookEntity.Select(n => new { n.BookId, n.Name }).Where(n => n.AuthorId == 20).QuerySelect().ToList();
+
+         //Update một/nhiều dòng của 1 table khi dòng đó thỏa mãn điều kiện
+         //Ví dụ: cập nhật Barcode và page cho tất cả book có author_id = 20
+         //SQL: UPDATE BOOK SET BARCODE = 'Barcode', PAGE = '10' WHERE AUTHOR_ID = 20
+         int rows = BookEntity.Update(n => n.Barcode.Equals("Barcode") && n.Page.Equals("10")).Where(n => n.AuthorId == 20).QueryUpdate();
+
+         //Delete một/nhiều dòng của 1 table khi dòng đó thỏa mãn điều kiện
+         //SQL: DELETE FROM BOOK WHERE AUTHOR_ID = 50
+         rows = BookEntity.DeleteWhere(n => n.AuthorId == 50);
+
+         //Demo Lazy Loading lấy book của một author (1-n)
+         AuthorEntity authorEntity = AuthorEntity.Where(n => n.AuthorId == 51).QueryEntity().ToList().First();
+         List<BookEntity> listBookOfAuthor = authorEntity.GetBooks();
+
+         //Demo bulk insert bằng cách chuyển data từ SQL SERVER sang MYSQL
+         var staffs = StaffEntity.GetAll();
+         var users = UserEntity.GetAll();
+         var auth = AuthorEntity.GetAll();
+         var books = BookEntity.GetAll();
+         List<int> staff_userid = staffs.Select(n => n.UserId).ToList();
+         users = users.Where(n => !staff_userid.Contains(n.UserId)).ToList();
+         //Đóng connection SQL Server
+         DatabaseContext.GetInstance().CloseConnection();
+
+         //Sử dụng MySQL
+         EntityService.InitEntityProperty();
+         AuthorEntity.DeleteWhere(n => n.AuthorId == 1);
          DatabaseAbstract mysqlDatabase = dbFactory.CreateDatabase(DATABASE_TYPE.MYSQL, @"Server=localhost;Port=3306;Database=dp;Uid=root;Pwd=hello123;");
          db.CreateInstance(mysqlDatabase);
-         /*foreach (var u in users)
-         {
-            u.Insert(true);
-         }
+         //Bulk insert
+         StaffEntity.BulkInsert(staffs, true);
+         UserEntity.BulkInsert(users, true);
+         AuthorEntity.BulkInsert(auth, true);
+         BookEntity.BulkInsert(books, true);
 
-         foreach (var s in staffs)
+         //Demo bulk Update ở MYSQL
+         listBooks = BookEntity.Where(n => n.AuthorId == 52).QueryEntity().ToList();
+         int temp = 0;
+         foreach (BookEntity book in listBooks)
          {
-            s.Insert(true);
+            book.Name = book.Name + (++temp);
          }
+         BookEntity.BulkUpdate(listBooks);
 
-         foreach (var s in auth)
-         {
-            s.Insert(true);
-         }
+         //Demo bulk Delete ở MYSQL
+         BookEntity.BulkDelete(listBooks);
 
-         foreach (var s in books)
-         {
-            s.Insert(true);
-         }*/
+         //Demo Delete all (truncate) ở MYSQL
+         BookEntity.DeleteAll();
+
+         //Đóng kết nối CSDL
+         DatabaseContext.GetInstance().CloseConnection();
       }
    }
 }

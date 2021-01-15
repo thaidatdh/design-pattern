@@ -11,14 +11,11 @@ namespace DesignPattern
    {
       public static List<T> GetAll()
       {
-         return DatabaseContext.Database.GetAllEntityList<T>();
+         return DatabaseContext.GetInstance().GetAllEntityList<T>();
       }
-      public abstract int Insert(bool insertIncludeID = false);
-      public abstract bool Update();
-      public abstract bool Delete();
       public static bool DeleteAll()
       {
-         return DatabaseContext.Database.TruncateTable<T>();
+         return DatabaseContext.GetInstance().TruncateTable<T>();
       }
       public static Query<T, S> Select<S>(Expression<Func<T, S>> select)
       {
@@ -40,15 +37,20 @@ namespace DesignPattern
       }
       public static int DeleteWhere(Expression<Func<T, bool>> where)
       {
-         return DatabaseContext.Database.DeleteWhereQuery<T>(where);
+         return DatabaseContext.GetInstance().DeleteWhereQuery<T>(where);
       }
       public static void BulkDelete(List<T> listEntity)
       {
-         DatabaseContext.Database.BulkDelete(listEntity);
+         DatabaseContext.GetInstance().BulkDelete(listEntity);
       }
       public static void BulkUpdate(List<T> listEntity)
       {
-         DatabaseContext.Database.BulkUpdate(listEntity);
+         DatabaseContext.GetInstance().BulkUpdate(listEntity);
+      }
+      public static void BulkInsert(List<T> listEntity, bool insertIncludeID = false)
+      {
+         foreach (T entity in listEntity)
+            ((EntityInterface)entity).Insert(insertIncludeID);
       }
    }
 }

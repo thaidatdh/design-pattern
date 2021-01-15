@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace DesignPattern.Entity
 {
    [Table("STAFF", "USER_ID")]
-   public class StaffEntity : UserEntity
+   public class StaffEntity : UserEntity, EntityInterface
    {
       public StaffEntity() : base() { }
       public StaffEntity(Object data) : base((Object)data)
@@ -31,29 +31,29 @@ namespace DesignPattern.Entity
       public string EndDate { get; set; }
       [Entity(Column = "ACTIVE", DataType = DATATYPE.BOOLEAN)]
       public bool Active { get; set; }
-      public override bool Delete()
+      public new bool Delete()
       {
-         return DatabaseContext.Database.DeleteEntity<StaffEntity>(this.StaffId);
+         return DatabaseContext.GetInstance().DeleteEntity<UserEntity>(this.UserId) && DatabaseContext.GetInstance().DeleteEntity<StaffEntity>(this.StaffId);
       }
 
-      public override int Insert(bool insertIncludeID = false)
+      public new int Insert(bool insertIncludeID = false)
       {
-         int userId = DatabaseContext.Database.InsertEntity<UserEntity>(this, insertIncludeID);
+         int userId = DatabaseContext.GetInstance().InsertEntity<UserEntity>(this, insertIncludeID);
          this.UserId = userId;
-         return DatabaseContext.Database.InsertEntity<StaffEntity>(this, insertIncludeID);
+         return DatabaseContext.GetInstance().InsertEntity<StaffEntity>(this, insertIncludeID);
       }
 
-      public override bool Update()
+      public new bool Update()
       {
-         return DatabaseContext.Database.UpdateEntity<StaffEntity>(this);
+         return DatabaseContext.GetInstance().UpdateEntity<StaffEntity>(this);
       }
-      public static List<StaffEntity> GetAll()
+      public static new List<StaffEntity> GetAll()
       {
-         return DatabaseContext.Database.GetAllEntityList<StaffEntity>();
+         return DatabaseContext.GetInstance().GetAllEntityList<StaffEntity>();
       }
-      public static bool DeleteAll()
+      public static new bool DeleteAll()
       {
-         return DatabaseContext.Database.TruncateTable<StaffEntity>();
+         return DatabaseContext.GetInstance().TruncateTable<StaffEntity>();
       }
       public static Query<StaffEntity, S> Select<S>(Expression<Func<StaffEntity, S>> select)
       {
@@ -75,7 +75,12 @@ namespace DesignPattern.Entity
       }
       public static int DeleteWhere(Expression<Func<StaffEntity, bool>> where)
       {
-         return DatabaseContext.Database.DeleteWhereQuery<StaffEntity>(where);
+         return DatabaseContext.GetInstance().DeleteWhereQuery<StaffEntity>(where);
+      }
+      public static void BulkInsert(List<StaffEntity> listEntity, bool insertIncludeID = false)
+      {
+         foreach (StaffEntity entity in listEntity)
+            entity.Insert(insertIncludeID);
       }
    }
 }

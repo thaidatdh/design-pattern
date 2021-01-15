@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace DesignPattern.Entity
 {
    [Table("USERS")]
-   public class UserEntity : IEntity<UserEntity>
+   public class UserEntity : IEntity<UserEntity>, EntityInterface
    {
       public UserEntity() { }
       public UserEntity(Object data)
@@ -38,19 +38,19 @@ namespace DesignPattern.Entity
       [Entity(Column = "USER_TYPE", DataType = DATATYPE.STRING, DefaultValue = "USER")]
       public string UserType { get; set; }
 
-      public override bool Delete()
+      public bool Delete()
       {
-         return DatabaseContext.Database.DeleteEntity<UserEntity>(this.UserId);
+         return DatabaseContext.GetInstance().DeleteEntity<UserEntity>(this.UserId);
       }
 
-      public override int Insert(bool insertIncludeID = false)
+      public int Insert(bool insertIncludeID = false)
       {
-         return DatabaseContext.Database.InsertEntity<UserEntity>(this, insertIncludeID);
+         return DatabaseContext.GetInstance().InsertEntity<UserEntity>(this, insertIncludeID);
       }
 
-      public override bool Update()
+      public bool Update()
       {
-         return DatabaseContext.Database.UpdateEntity<UserEntity>(this);
+         return DatabaseContext.GetInstance().UpdateEntity<UserEntity>(this);
       }
    }
 }

@@ -8,7 +8,7 @@ using System.Xml.Schema;
 namespace DesignPattern.Entity
 {
    [Table("BOOK")]
-   public class BookEntity : IEntity<BookEntity>
+   public class BookEntity : IEntity<BookEntity>, EntityInterface
    {
       public BookEntity() { }
       public BookEntity(Object data)
@@ -36,19 +36,19 @@ namespace DesignPattern.Entity
       [Entity(Column = "IS_DELETED", DataType = DATATYPE.BOOLEAN)]
       public bool IsDeleted { get; set; }
 
-      public override bool Delete()
+      public bool Delete()
       {
-         return DatabaseContext.Database.DeleteEntity<BookEntity>(this.BookId);
+         return DatabaseContext.GetInstance().DeleteEntity<BookEntity>(this.BookId);
       }
 
-      public override int Insert(bool insertIncludeID = false)
+      public int Insert(bool insertIncludeID = false)
       {
-         return DatabaseContext.Database.InsertEntity<BookEntity>(this, insertIncludeID);
+         return DatabaseContext.GetInstance().InsertEntity<BookEntity>(this, insertIncludeID);
       }
 
-      public override bool Update()
+      public bool Update()
       {
-         return DatabaseContext.Database.UpdateEntity<BookEntity>(this);
+         return DatabaseContext.GetInstance().UpdateEntity<BookEntity>(this);
       }
    }
 }

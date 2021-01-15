@@ -14,10 +14,14 @@ namespace DesignPattern
 {
    public class DatabaseContext
    {
-      public static DatabaseAbstract Database;
+      private static DatabaseAbstract Database { get; set; }
       public void CreateInstance(DatabaseAbstract database)
       {
          DatabaseContext.Database = database;
+      }
+      public static DatabaseAbstract GetInstance()
+      {
+         return DatabaseContext.Database;
       }
    }
 }

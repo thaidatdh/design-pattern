@@ -35,11 +35,11 @@ namespace DesignPattern
       }
       public static IEnumerable<T> QueryEntity<T, S>(this Query<T, S> query)
       {
-         return DatabaseContext.Database.GetEntityListComplexQuery(query);
+         return DatabaseContext.GetInstance().GetEntityListComplexQuery(query);
       }
       public static IEnumerable<S> QuerySelect<T, S>(this Query<T, S> query)
       {
-         return DatabaseContext.Database.GetListComplexSelectField(query);
+         return DatabaseContext.GetInstance().GetListComplexSelectField(query);
       }
       public static UpdateQuery<T> Where<T>(this UpdateQuery<T> query, Expression<Func<T, bool>> where)
       {
@@ -52,7 +52,7 @@ namespace DesignPattern
       }
       public static int QueryUpdate<T>(this UpdateQuery<T> query)
       {
-         return DatabaseContext.Database.UpdateComplexQuery(query);
+         return DatabaseContext.GetInstance().UpdateComplexQuery(query);
       }
    }
 }
