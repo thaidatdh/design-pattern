@@ -121,18 +121,6 @@ namespace DesignPattern
          return result;
       }
 
-      public override int ExecuteSqlQuery(string sql)
-      {
-         object command = CreateCommand(sql); 
-         return ExecuteQuery(command);
-      }
-
-      public override object ExecuteSqlScalar(string sql)
-      {
-         object command = CreateCommand(sql);
-         return ExecuteScalar(command);
-      }
-
       public override object ExecuteScalar(object command)
       {
          SqlCommand cmd = (SqlCommand)command;

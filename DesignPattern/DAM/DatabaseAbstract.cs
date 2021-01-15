@@ -65,9 +65,17 @@ namespace DesignPattern
       }
       public abstract int ExecuteQuery(object command);
       public abstract int ExecuteInsertQuery(object command);
-      public abstract int ExecuteSqlQuery(string sql);
+      public int ExecuteSqlQuery(string sql)
+      {
+         object command = CreateCommand(sql);
+         return ExecuteQuery(command);
+      }
       public abstract object ExecuteScalar(object command);
-      public abstract object ExecuteSqlScalar(string sql);
+      public object ExecuteSqlScalar(string sql)
+      {
+         object command = CreateCommand(sql);
+         return ExecuteScalar(command);
+      }
       public abstract void CloseConnection();
       private static string GenerateSelectQuery<T>(string tableName = "", string wherePart = "", string otherPart = "")
       {
